@@ -260,8 +260,22 @@ own intermediate representation lets these datasets specialize for their intende
 - What is the stabilization story? As langauge features are added, this representation will need to
   be extended to accommodate it. As this will change the structure of the data, what does that mean
   for its consumers?
-- How do we represent type information, and allow people to properly collect type information from
-  places like struct fields, function signatures, etc?
+- How do we represent types, and allow people to properly collect type information from places like
+  struct fields, function signatures, etc? `rustdoc`'s own `clean::Type` enum is large and recursive
+  and represents a lot of primitives, in addition to ultimately deferring the lookup to a DefId.
 - The `id` field is basically a copy of DefId from inside the compiler; is there a better way to
   represent it? How necessary is it to have? Will using numbers run into problems with JSON parsers
   that treat all numbers as floats?
+- Where should we store impls?
+  - In `rustdoc`, trait impls are pooled in the crate root (or placed in the module they're declared
+    in), but before rendering, the information is copied into two maps: one mapping traits to their
+    implementors, and one mapping types to all their impls (inherent or trait).
+  - The HIR copies all trait impls into a map connecting traits to their implementors, though
+    they're also available in the location they're defined if you iterate over the HIR.
+  - However, while trait impls are unburdened by scope rules for visibility, *inherent* impls are.
+    Currently, if `--document-private-items` is passed, the methods defined in an impl are all
+    pooled into a struct, and any `pub(restricted)` scopes link to their respective modules.
+    However, private methods are just shown as private, without any information connecting them to
+    where they're allowed.
+  - This leads to wanting to pool impls on their type (and copying them in to their trait for trait
+    impls), and leaving the visibility fix for a later PR.
