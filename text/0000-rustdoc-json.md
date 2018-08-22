@@ -188,6 +188,8 @@ Name          | Type     | Description
 `fields`      | Array    | The list of fields in the struct. Always an array of Item with `type == "structfield"`.
 `fields_stripped` | Boolean | Whether any fields have been removed from the result, due to being private or hidden.
 
+(*Complete documentation information is deferred to final design and implementation work.*)
+
 # Drawbacks
 [drawbacks]: #drawbacks
 
