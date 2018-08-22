@@ -69,20 +69,17 @@ clarity):
     "module": {
         "id": [0, 0],
         "docs": "Here are some crate-level docs!",
-        "docs_are_inner": true,
         "attrs": [],
+        "type": "mod",
         "inner": {
-            "type": "mod",
-            "is_crate": true,
             "items": [
                 {
                     "id": [0, 1],
                     "name": "some_fn",
                     "docs": "Here are some docs for `some_fn`!",
-                    "docs_are_inner": false,
                     "attrs": [],
+                    "type": "fn",
                     "inner": {
-                        "type": "fn",
                         "decl": {
                             "inputs": []
                         },
@@ -90,22 +87,19 @@ clarity):
                             "params": [],
                             "where_predicates": []
                         },
-                        "header": {
-                            "unsafe": false,
-                            "const": false,
-                            "async": false,
-                            "abi": "Rust"
-                        }
+                        "unsafe": false,
+                        "const": false,
+                        "async": false,
+                        "abi": "Rust"
                     }
                 },
                 {
                     "id": [0, 2],
                     "name": "SomeStruct",
                     "docs": "Here are some docs for `SomeStruct`!",
-                    "docs_are_inner": false,
                     "attrs": [],
+                    "type": "struct",
                     "inner": {
-                        "type": "struct",
                         "struct_type": "unit",
                         "generics": {
                             "params": [],
@@ -124,14 +118,75 @@ clarity):
 # Reference-level explanation
 [reference-level-explanation]: #reference-level-explanation
 
-> This is the technical portion of the RFC. Explain the design in sufficient detail that:
->
-> - Its interaction with other features is clear.
-> - It is reasonably clear how the feature would be implemented.
-> - Corner cases are dissected by example.
->
-> The section should return to the examples given in the previous section, and explain more fully
-> how the detailed proposal makes those examples work.
+(*Upon successful implementation/stabilization, this documentation should live in The Rustdoc
+Book.*)
+
+When you request JSON output from `rustdoc`, you're getting a version of the Rust abstract syntax
+tree (AST), so you could see anything that you could export from a valid Rust crate. The following
+types can appear in the output:
+
+(*This documentation is deliberately left incomplete; filling it out will happen during the design
+process.*)
+
+## Crate
+
+A Crate is the root of the AST, and the structure given for the whole output file. This contains
+information about the crate as a whole, as well as information about the items in the root module.
+
+Name      | Type    | Description
+----------|---------|------------------------------------------------------------------------------
+`name`    | String  | The name of the crate. If `--crate-name` is not given, based on the filename.
+`version` | String  | *Optional.* The version string given to `--crate-version`, if any.
+`src`     | String  | The filename of the root of the crate.
+`module`  | Item    | The Item corresponding to the root module.
+
+## Item
+
+An Item represents anything that can hold documentation - modules, structs, enums, functions,
+traits, type aliases, and more. The Item data type holds the fields that can apply to anything, and
+leaves kind-specific details to the `inner` field.
+
+Name      | Type    | Description
+----------|---------|------------------------------------------------------------------------------
+`id`      | Array   | A pair of numbers that together create a unique ID for this Item.
+`name`    | String  | The name of the item, if present. Some items, like impl blocks, do not have names.
+`docs`    | String  | The extracted documentation text from the item.
+`attrs`   | Array   | The attributes (other than doc comments) on the item, rendered as strings.
+`cfg`     | String  | *Optional.* Conditional-compilation information given by `#[doc(cfg)]`, if present.
+`type`    | String  | The kind of Item this is. Determines what fields are in `inner`.
+`inner`   | Object  | The type-specific fields describing this Item. Check the `type` field to determine what's available.
+
+### `type == "mod"`
+
+When `type` is `"mod"`, the Item refers to a module.
+
+Name     | Type   | Description
+---------|--------|--------------------------------------------------------------------------------
+`items`  | Array  | The list of Items contained within this module.
+
+### `type == "fn"`
+
+When `type` is `"fn"`, the Item refers to a function.
+
+Name       | Type     | Description
+-----------|----------|----------------------------------------------------------------------------
+`decl`     | Decl     | Information about the function signature, or declaration.
+`generics` | Generics | Information about the function's type parameters and `where` clauses.
+`unsafe`   | Boolean  | Whether the function is marked `unsafe`.
+`const`    | Boolean  | Whether the function is marked `const`.
+`async`    | Boolean  | Whether the function is marked `async`.
+`abi`      | String   | The ABI string on the function. Non-`extern` functions have a `"Rust"` ABI, whereas `extern` functions without an explicit ABI are `"C"`.
+
+### `type == "struct"`
+
+When `type` is `"struct"`, the Item refers to a struct definition.
+
+Name          | Type     | Description
+--------------|----------|-------------------------------------------------------------------------
+`struct_type` | String   | Either "plain" for braced structs, "tuple" for tuple structs, or "unit" for unit structs.
+`generics`    | Generics | Information about the struct's type parameters and `where` clauses.
+`fields`      | Array    | The list of fields in the struct. Always an array of Item with `type == "structfield"`.
+`fields_stripped` | Boolean | Whether any fields have been removed from the result, due to being private or hidden.
 
 # Drawbacks
 [drawbacks]: #drawbacks
@@ -205,3 +260,8 @@ own intermediate representation lets these datasets specialize for their intende
 - What is the stabilization story? As langauge features are added, this representation will need to
   be extended to accommodate it. As this will change the structure of the data, what does that mean
   for its consumers?
+- How do we represent type information, and allow people to properly collect type information from
+  places like struct fields, function signatures, etc?
+- The `id` field is basically a copy of DefId from inside the compiler; is there a better way to
+  represent it? How necessary is it to have? Will using numbers run into problems with JSON parsers
+  that treat all numbers as floats?
