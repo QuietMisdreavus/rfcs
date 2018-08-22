@@ -6,15 +6,11 @@
 # Summary
 [summary]: #summary
 
-> One paragraph explanation of the feature.
-
 This RFC decribes the design of a potential JSON output for the tool `rustdoc`, to allow tools to
 lean on its data collection and refinement but provide a different front-end.
 
 # Motivation
 [motivation]: #motivation
-
-> Why are we doing this? What use cases does it support? What is the expected outcome?
 
 The current HTML output of `rustdoc` is often lauded as a key selling point of Rust. Using this
 ubiquitous tool, you can easily find nearly anything you need to know about a crate. However,
@@ -68,60 +64,60 @@ clarity):
 
 ```json
 {
-    name: "lib",
-    src: "lib.rs",
-    module: [
-        id: [0, 0],
-        docs: "Here are some crate-level docs!",
-        docs_are_inner: true,
-        attrs: [],
-        inner: {
-            type: "mod",
-            is_crate: true,
-            items: [
+    "name": "lib",
+    "src": "lib.rs",
+    "module": {
+        "id": [0, 0],
+        "docs": "Here are some crate-level docs!",
+        "docs_are_inner": true,
+        "attrs": [],
+        "inner": {
+            "type": "mod",
+            "is_crate": true,
+            "items": [
                 {
-                    id: [0, 1],
-                    name: "some_fn",
-                    docs: "Here are some docs for `some_fn`!",
-                    docs_are_inner: false,
-                    attrs: [],
-                    inner: {
-                        type: "fn",
-                        decl: {
-                            inputs: []
+                    "id": [0, 1],
+                    "name": "some_fn",
+                    "docs": "Here are some docs for `some_fn`!",
+                    "docs_are_inner": false,
+                    "attrs": [],
+                    "inner": {
+                        "type": "fn",
+                        "decl": {
+                            "inputs": []
                         },
-                        generics: {
-                            params: [],
-                            where_predicates: []
+                        "generics": {
+                            "params": [],
+                            "where_predicates": []
                         },
-                        header: {
-                            unsafe: false,
-                            const: false,
-                            async: false,
-                            abi: "Rust"
+                        "header": {
+                            "unsafe": false,
+                            "const": false,
+                            "async": false,
+                            "abi": "Rust"
                         }
                     }
                 },
                 {
-                    id: [0, 2],
-                    name: "SomeStruct",
-                    docs: "Here are some docs for `SomeStruct`!",
-                    docs_are_inner: false,
-                    attrs: [],
-                    inner: {
-                        type: "struct",
-                        struct_type: "unit",
-                        generics: {
-                            params: [],
-                            where_predicates: []
+                    "id": [0, 2],
+                    "name": "SomeStruct",
+                    "docs": "Here are some docs for `SomeStruct`!",
+                    "docs_are_inner": false,
+                    "attrs": [],
+                    "inner": {
+                        "type": "struct",
+                        "struct_type": "unit",
+                        "generics": {
+                            "params": [],
+                            "where_predicates": []
                         },
-                        fields: [],
-                        fields_stripped: false
+                        "fields": [],
+                        "fields_stripped": false
                     }
                 }
             ]
         }
-    ]
+    }
 }
 ```
 
